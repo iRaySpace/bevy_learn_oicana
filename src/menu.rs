@@ -35,10 +35,32 @@ fn setup_menu(mut commands: Commands, font_assets: Res<FontAssets>) {
         });
 }
 
+fn btn_system(
+    mut interaction_query: Query<(Entity, &Interaction, &mut UiColor), With<Button>>,
+    mut commands: Commands,
+    mut state: ResMut<State<AppState>>,
+) {
+    for (button, interaction, mut color) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                commands.entity(button).despawn_recursive();
+                state.set(AppState::InGame).unwrap();
+            }
+            Interaction::Hovered => {
+                *color = Color::rgb(0.72, 0.40, 0.09).into();
+            }
+            Interaction::None => {
+                *color = Color::rgb(0.80, 0.49, 0.12).into();
+            }
+        }
+    }
+}
+
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(setup_menu));
+        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(setup_menu))
+            .add_system_set(SystemSet::on_update(AppState::Menu).with_system(btn_system));
     }
 }
